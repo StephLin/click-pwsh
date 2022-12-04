@@ -16,7 +16,7 @@ def main():
 @main.command()
 @click.argument("command")
 def install(command):
-    """Install a package with pip."""
+    """Land the shell completion to PowerShell 7."""
     profile = (
         sp.run('pwsh -c "echo $PROFILE"', shell=True, capture_output=True)
         .stdout.decode()
