@@ -1,6 +1,6 @@
 # `PS>` click-pwsh
 
-[![Supported Python Versions](https://img.shields.io/pypi/pyversions/click-pwsh/0.9.0)](https://pypi.org/project/click-pwsh/) [![PyPI version](https://badge.fury.io/py/click-pwsh.svg)](https://badge.fury.io/py/click-pwsh)
+[![Supported Python Versions](https://img.shields.io/pypi/pyversions/click-pwsh)](https://pypi.org/project/click-pwsh/) [![PyPI version](https://badge.fury.io/py/click-pwsh.svg)](https://badge.fury.io/py/click-pwsh)
 
 A [click](https://github.com/pallets/click) extension to support shell completion for **[PowerShell 7](https://github.com/PowerShell/PowerShell)**.
 
