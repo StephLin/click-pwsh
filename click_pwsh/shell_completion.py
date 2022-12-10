@@ -12,21 +12,36 @@ _SOURCE_PWSH = """\
 Register-ArgumentCompleter -Native -CommandName %(prog_name)s -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
         $env:COMP_WORDS = $commandAst
+        $env:COMP_WORDS = $env:COMP_WORDS.replace('\\', '/')
         $imcompleteCommand = $commandAst.ToString()
 
-        if ($cursorPosition -gt $imcompleteCommand.Length) { $cursorPosition = \
+        $myCursorPosition = $cursorPosition
+        if ($myCursorPosition -gt $imcompleteCommand.Length) { $myCursorPosition = \
 $imcompleteCommand.Length }
         $env:COMP_CWORD = @($imcompleteCommand.substring(0, \
-$cursorPosition).Split(" ") | Where-Object { $_ -ne "" }).Length
+$myCursorPosition).Split(" ") | Where-Object { $_ -ne "" }).Length
         if ( $wordToComplete.Length -gt 0) { $env:COMP_CWORD -= 1 }
 
         $env:%(complete_var)s = "pwsh_complete"
 
         %(prog_name)s | ForEach-Object {
             $type, $value, $help = $_.Split(",", 3)
-            if ( ![string]::IsNullOrEmpty($value) ) {
-                [System.Management.Automation.CompletionResult]::new($value, \
-$value, "ParameterValue", $value)
+            if ( ($type -eq "plain") -and ![string]::IsNullOrEmpty($value) ) {
+                [System.Management.Automation.CompletionResult]::new($value, $value, \
+"ParameterValue", $value)
+            } elseif ( ($type -eq "file") -or ($type -eq "dir") ) {
+                if ([string]::IsNullOrEmpty($wordToComplete)) {
+                    $dir = "./"
+                } else {
+                    $dir = $wordToComplete.replace('\\', '/')
+                }
+                Get-ChildItem -Path $dir | Resolve-Path -Relative | ForEach-Object {
+                    $path = $_.ToString().replace('\\', '/')
+                    if ((Get-Item $path) -is [System.IO.DirectoryInfo]) { $path = \
+$path + "/" }
+                    [System.Management.Automation.CompletionResult]::new($path, $path, \
+"ParameterValue", $path)
+                }
             }
         }
 
