@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "click-pwsh"
-version = "0.9.2"
+version = "0.9.3"
 description = "A click extension to support shell completion for PowerShell 7"
 license = "BSD-3-Clause"
 authors = ["Yu-Kai Lin <stephen359595@gmail.com>"]
