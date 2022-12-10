@@ -35,13 +35,23 @@ $myCursorPosition).Split(" ") | Where-Object { $_ -ne "" }).Length
                 } else {
                     $dir = $wordToComplete.replace('\\', '/')
                 }
+                if ( (Test-Path -Path $dir) -and ((Get-Item $dir) -is \
+[System.IO.DirectoryInfo]) ) {
+                    [System.Management.Automation.CompletionResult]::new($dir, $dir, \
+"ParameterValue", $dir)
+                }
                 Get-ChildItem -Path $dir | Resolve-Path -Relative | ForEach-Object {
-                    $path = $_.ToString().replace('\\', \
+                    $path = $_.ToString().replace('\', \
 '/').replace('Microsoft.PowerShell.Core/FileSystem::', '')
-                    if ((Get-Item $path) -is [System.IO.DirectoryInfo]) { $path = \
-$path + "/" }
-                    [System.Management.Automation.CompletionResult]::new($path, $path, \
-"ParameterValue", $path)
+                    $isDir = $false
+                    if ((Get-Item $path) -is [System.IO.DirectoryInfo]) {
+                        $path = $path + "/"
+                        $isDir = $true
+                    }
+                    if ( ($type -eq "file") -or ( ($type -eq "dir") -and $isDir ) ) {
+                        [System.Management.Automation.CompletionResult]::new($path, \
+$path, "ParameterValue", $path)
+                    }
                 }
             }
         }
