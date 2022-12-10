@@ -13,12 +13,12 @@ Register-ArgumentCompleter -Native -CommandName %(prog_name)s -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
         $env:COMP_WORDS = $commandAst
         $env:COMP_WORDS = $env:COMP_WORDS.replace('\\', '/')
-        $imcompleteCommand = $commandAst.ToString()
+        $incompleteCommand = $commandAst.ToString()
 
         $myCursorPosition = $cursorPosition
-        if ($myCursorPosition -gt $imcompleteCommand.Length) { $myCursorPosition = \
-$imcompleteCommand.Length }
-        $env:COMP_CWORD = @($imcompleteCommand.substring(0, \
+        if ($myCursorPosition -gt $incompleteCommand.Length) { $myCursorPosition = \
+$incompleteCommand.Length }
+        $env:COMP_CWORD = @($incompleteCommand.substring(0, \
 $myCursorPosition).Split(" ") | Where-Object { $_ -ne "" }).Length
         if ( $wordToComplete.Length -gt 0) { $env:COMP_CWORD -= 1 }
 
@@ -41,7 +41,7 @@ $myCursorPosition).Split(" ") | Where-Object { $_ -ne "" }).Length
 "ParameterValue", $dir)
                 }
                 Get-ChildItem -Path $dir | Resolve-Path -Relative | ForEach-Object {
-                    $path = $_.ToString().replace('\', \
+                    $path = $_.ToString().replace('\\', \
 '/').replace('Microsoft.PowerShell.Core/FileSystem::', '')
                     $isDir = $false
                     if ((Get-Item $path) -is [System.IO.DirectoryInfo]) {
