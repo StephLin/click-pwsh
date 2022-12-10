@@ -36,7 +36,8 @@ $myCursorPosition).Split(" ") | Where-Object { $_ -ne "" }).Length
                     $dir = $wordToComplete.replace('\\', '/')
                 }
                 Get-ChildItem -Path $dir | Resolve-Path -Relative | ForEach-Object {
-                    $path = $_.ToString().replace('\\', '/')
+                    $path = $_.ToString().replace('\\', \
+'/').replace('Microsoft.PowerShell.Core/FileSystem::', '')
                     if ((Get-Item $path) -is [System.IO.DirectoryInfo]) { $path = \
 $path + "/" }
                     [System.Management.Automation.CompletionResult]::new($path, $path, \
