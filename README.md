@@ -35,3 +35,14 @@ Complete.
 where `foo-bar` is your command name.
 
 Then ... all done. Re-open PowerShell 7 and enjoy the shell completion!
+
+## Update Shell Completion Scripts
+
+If you upgrade click-pwsh, you can use the following command to update your shell completion scripts:
+
+```bash
+PS> python -m click_pwsh update foo-bar
+Complete.
+```
+
+where `foo-bar` is your command name whose shell completion scripts have already installed before.
