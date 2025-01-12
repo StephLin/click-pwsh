@@ -12,6 +12,17 @@ import click
 def main():
     pass
 
+def get_current_encoding() -> str:
+    """
+    Determines the current console code page encoding by executing a PowerShell command.
+    Retrieve the active code page from the `chcp` command output and extract code from byte string.
+    Returns:
+        str: The current console code page encoding as a string.
+    """
+    encoding = sp.run('pwsh -c "(chcp | Out-String).Split(\' \')[-1].Trim()"', shell=False, capture_output=True)
+    encoding = ''.join(chr(byte) for byte in encoding.stdout if byte not in (b'\r', b'\n'))
+    
+    return encoding
 
 @main.command()
 @click.argument("command")
@@ -19,7 +30,7 @@ def install(command):
     """Land the shell completion to PowerShell 7."""
     profile = (
         sp.run('pwsh -c "echo $PROFILE"', shell=True, capture_output=True)
-        .stdout.decode()
+        .stdout.decode(get_current_encoding())
         .strip()
     )
     profile = Path(profile)
@@ -50,7 +61,7 @@ def update(command):
     """Update shell completion scripts to PowerShell 7."""
     profile = (
         sp.run('pwsh -c "echo $PROFILE"', shell=True, capture_output=True)
-        .stdout.decode()
+        .stdout.decode(get_current_encoding())
         .strip()
     )
     profile = Path(profile)
