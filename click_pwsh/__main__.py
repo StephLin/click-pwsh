@@ -12,6 +12,12 @@ import click
 def main():
     pass
 
+
+def _pwsh_escape(path: str) -> str:
+    """Escape single quotes in a path for use in a PowerShell single-quoted string."""
+    return path.replace("'", "''")
+
+
 def get_current_encoding() -> str:
     """
     Determines the current console code page encoding by executing a PowerShell command.
@@ -19,17 +25,22 @@ def get_current_encoding() -> str:
     Returns:
         str: The current console code page encoding as a string.
     """
-    encoding = sp.run('pwsh -c "(chcp | Out-String).Split(\' \')[-1].Trim()"', shell=False, capture_output=True)
+    encoding = sp.run(
+        ["pwsh", "-c", "(chcp | Out-String).Split(' ')[-1].Trim()"],
+        shell=False,
+        capture_output=True,
+    )
     encoding = ''.join(chr(byte) for byte in encoding.stdout if byte not in (b'\r', b'\n'))
-    
+
     return encoding
+
 
 @main.command()
 @click.argument("command")
 def install(command):
     """Land the shell completion to PowerShell 7."""
     profile = (
-        sp.run('pwsh -c "echo $PROFILE"', shell=True, capture_output=True)
+        sp.run(["pwsh", "-c", "echo $PROFILE"], shell=False, capture_output=True)
         .stdout.decode(get_current_encoding())
         .strip()
     )
@@ -40,16 +51,27 @@ def install(command):
 
     completion_profile = profile.parent / ".{}_profile.ps1".format(command)
     sp.run(
-        "pwsh -c \"$env:{0} = 'pwsh_source'; {1} > {2}; $env:{0} = $null\"".format(
-            completion_varname, command, str(completion_profile)
-        ),
-        shell=True,
+        [
+            "pwsh",
+            "-c",
+            "$env:{0} = 'pwsh_source'; {1} > '{2}'; $env:{0} = $null".format(
+                completion_varname,
+                command,
+                _pwsh_escape(str(completion_profile)),
+            ),
+        ],
+        shell=False,
     )
     sp.run(
-        'pwsh -c "echo \'"{}" | Invoke-Expression\' >> {}"'.format(
-            str(completion_profile), str(profile)
-        ),
-        shell=True,
+        [
+            "pwsh",
+            "-c",
+            "echo '& \"{}\"' >> '{}'".format(
+                str(completion_profile),
+                _pwsh_escape(str(profile)),
+            ),
+        ],
+        shell=False,
     )
 
     print("Complete.")
@@ -60,7 +82,7 @@ def install(command):
 def update(command):
     """Update shell completion scripts to PowerShell 7."""
     profile = (
-        sp.run('pwsh -c "echo $PROFILE"', shell=True, capture_output=True)
+        sp.run(["pwsh", "-c", "echo $PROFILE"], shell=False, capture_output=True)
         .stdout.decode(get_current_encoding())
         .strip()
     )
@@ -76,10 +98,16 @@ def update(command):
         exit(1)
 
     sp.run(
-        "pwsh -c \"$env:{0} = 'pwsh_source'; {1} > {2}; $env:{0} = $null\"".format(
-            completion_varname, command, str(completion_profile)
-        ),
-        shell=True,
+        [
+            "pwsh",
+            "-c",
+            "$env:{0} = 'pwsh_source'; {1} > '{2}'; $env:{0} = $null".format(
+                completion_varname,
+                command,
+                _pwsh_escape(str(completion_profile)),
+            ),
+        ],
+        shell=False,
     )
 
     print("Complete.")
