@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
+import re
 import subprocess as sp
 from pathlib import Path
 
@@ -11,6 +12,18 @@ import click
 @click.group()
 def main():
     pass
+
+
+_COMMAND_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+
+
+def _validate_command(command: str) -> None:
+    """Raise click.BadParameter if command contains characters unsafe for shell embedding."""
+    if not _COMMAND_RE.match(command):
+        raise click.BadParameter(
+            "must match ^[A-Za-z0-9][A-Za-z0-9_-]*$",
+            param_hint="'COMMAND'",
+        )
 
 
 def _pwsh_escape(path: str) -> str:
@@ -31,15 +44,14 @@ def get_current_encoding() -> str:
         capture_output=True,
         check=True,
     )
-    encoding = ''.join(chr(byte) for byte in encoding.stdout if byte not in (b'\r', b'\n'))
-
-    return encoding
+    return encoding.stdout.decode("utf-8").strip()
 
 
 @main.command()
 @click.argument("command")
 def install(command):
     """Land the shell completion to PowerShell 7."""
+    _validate_command(command)
     profile = (
         sp.run(["pwsh", "-c", "echo $PROFILE"], shell=False, capture_output=True, check=True)
         .stdout.decode(get_current_encoding())
@@ -68,8 +80,12 @@ def install(command):
         [
             "pwsh",
             "-c",
-            "echo '& \"{}\"' >> '{}'".format(
-                str(completion_profile),
+            # Write `& 'path'` to the profile. In a PS single-quoted string ''
+            # represents a literal single quote, so '& ''{0}''' expands to
+            # `& '{0}'` where {0} already has internal quotes doubled by
+            # _pwsh_escape(), giving $-safe invocation regardless of path content.
+            "echo '& ''{0}''' >> '{1}'".format(
+                _pwsh_escape(str(completion_profile)),
                 _pwsh_escape(str(profile)),
             ),
         ],
@@ -84,6 +100,7 @@ def install(command):
 @click.argument("command")
 def update(command):
     """Update shell completion scripts to PowerShell 7."""
+    _validate_command(command)
     profile = (
         sp.run(["pwsh", "-c", "echo $PROFILE"], shell=False, capture_output=True, check=True)
         .stdout.decode(get_current_encoding())
