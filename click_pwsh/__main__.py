@@ -29,6 +29,7 @@ def get_current_encoding() -> str:
         ["pwsh", "-c", "(chcp | Out-String).Split(' ')[-1].Trim()"],
         shell=False,
         capture_output=True,
+        check=True,
     )
     encoding = ''.join(chr(byte) for byte in encoding.stdout if byte not in (b'\r', b'\n'))
 
@@ -40,7 +41,7 @@ def get_current_encoding() -> str:
 def install(command):
     """Land the shell completion to PowerShell 7."""
     profile = (
-        sp.run(["pwsh", "-c", "echo $PROFILE"], shell=False, capture_output=True)
+        sp.run(["pwsh", "-c", "echo $PROFILE"], shell=False, capture_output=True, check=True)
         .stdout.decode(get_current_encoding())
         .strip()
     )
@@ -61,6 +62,7 @@ def install(command):
             ),
         ],
         shell=False,
+        check=True,
     )
     sp.run(
         [
@@ -72,6 +74,7 @@ def install(command):
             ),
         ],
         shell=False,
+        check=True,
     )
 
     print("Complete.")
@@ -82,7 +85,7 @@ def install(command):
 def update(command):
     """Update shell completion scripts to PowerShell 7."""
     profile = (
-        sp.run(["pwsh", "-c", "echo $PROFILE"], shell=False, capture_output=True)
+        sp.run(["pwsh", "-c", "echo $PROFILE"], shell=False, capture_output=True, check=True)
         .stdout.decode(get_current_encoding())
         .strip()
     )
@@ -108,6 +111,7 @@ def update(command):
             ),
         ],
         shell=False,
+        check=True,
     )
 
     print("Complete.")
