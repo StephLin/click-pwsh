@@ -12,6 +12,7 @@ import click
 def main():
     pass
 
+
 def get_current_encoding() -> str:
     """
     Determines the current console code page encoding by executing a PowerShell command.
@@ -19,10 +20,17 @@ def get_current_encoding() -> str:
     Returns:
         str: The current console code page encoding as a string.
     """
-    encoding = sp.run('pwsh -c "(chcp | Out-String).Split(\' \')[-1].Trim()"', shell=False, capture_output=True)
-    encoding = ''.join(chr(byte) for byte in encoding.stdout if byte not in (b'\r', b'\n'))
-    
+    encoding = sp.run(
+        "pwsh -c \"(chcp | Out-String).Split(' ')[-1].Trim()\"",
+        shell=False,
+        capture_output=True,
+    )
+    encoding = "".join(
+        chr(byte) for byte in encoding.stdout if byte not in (b"\r", b"\n")
+    )
+
     return encoding
+
 
 @main.command()
 @click.argument("command")
@@ -39,18 +47,15 @@ def install(command):
     completion_varname = "_{}_COMPLETE".format(command.replace("-", "_").upper())
 
     completion_profile = profile.parent / ".{}_profile.ps1".format(command)
-    sp.run(
-        "pwsh -c \"$env:{0} = 'pwsh_source'; {1} > {2}; $env:{0} = $null\"".format(
-            completion_varname, command, str(completion_profile)
-        ),
-        shell=True,
+    cmd = "pwsh -c \"$env:{0} = 'pwsh_source'; {1} > '{2}'; $env:{0} = $null\"".format(
+        completion_varname, command, str(completion_profile)
     )
-    sp.run(
-        'pwsh -c "echo \'"{}" | Invoke-Expression\' >> {}"'.format(
-            str(completion_profile), str(profile)
-        ),
-        shell=True,
+    sp.run(cmd, shell=True)
+
+    cmd = "pwsh -c \"echo '& \\\"{}\\\"' >> '{}'".format(
+        str(completion_profile), str(profile)
     )
+    sp.run(cmd, shell=True)
 
     print("Complete.")
 
@@ -75,12 +80,10 @@ def update(command):
         print("ERROR: Cannot find existing completion profile. Try `install` instead.")
         exit(1)
 
-    sp.run(
-        "pwsh -c \"$env:{0} = 'pwsh_source'; {1} > {2}; $env:{0} = $null\"".format(
-            completion_varname, command, str(completion_profile)
-        ),
-        shell=True,
+    cmd = "pwsh -c \"$env:{0} = 'pwsh_source'; {1} > '{2}'; $env:{0} = $null\"".format(
+        completion_varname, command, str(completion_profile)
     )
+    sp.run(cmd, shell=True)
 
     print("Complete.")
 
