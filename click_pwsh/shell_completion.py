@@ -5,8 +5,7 @@
 import os
 import typing as t
 
-from click.parser import split_arg_string
-from click.shell_completion import CompletionItem, ShellComplete
+from click.shell_completion import CompletionItem, ShellComplete, split_arg_string
 
 _SOURCE_PWSH = """\
 Register-ArgumentCompleter -Native -CommandName %(prog_name)s -ScriptBlock {
